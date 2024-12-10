@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: trf_typenames
+    description: "Gets ID to typename"
+    columns:
+      - name: typeid
+        data_tests:
+          - not_null
+      - name: typename
+        data_tests:
+          - not_null
+  - name: trf_jita_history_names
+    description: "Jita market history with typenames"
+    columns:
+      - name: typeid
+        data_tests:
+          - not_null
+      - name: typename
+        data_tests:
+          - not_null
+      - name: date
+      - name: highest
+      - name: lowest
+      - name: order_count
+      - name: volume
+  - name: trf_groups
+    description: "typeid to invgroups"
+    columns:
+      - name: typeid
+        data_tests:
+          - not_null
+      - name: groupname
+        data:tests:
+          - not_null
+      - name: categoryname
+        data_tests:
+          - not_null

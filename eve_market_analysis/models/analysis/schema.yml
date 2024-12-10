@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: jita_iskvolume_item
+    description: "ISKvolume by date per item"
+    columns:
+      - name: typename
+        data_tests:
+          - not_null
+      - name: date
+      - name: iskvolume

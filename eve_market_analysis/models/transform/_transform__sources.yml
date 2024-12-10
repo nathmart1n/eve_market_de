@@ -1,0 +1,44 @@
+version: 2
+
+sources:
+  - name: market_data
+    database: eve_market_data
+    schema: raw
+    tables:
+      - name: eve_market_history      
+        columns:
+          - name: average
+          - name: date
+          - name: highest
+          - name: lowest
+          - name: order_count
+          - name: volume
+          - name: typeid
+            tests:
+              - not_null
+      - name: invtypes
+        columns:
+          - name: typeid
+            tests:
+              - not_null
+          - name: groupid
+          - name: typename
+            tests:
+              - not_null
+          - name: description
+          - name: mass
+          - name: volume
+          - name: capacity
+          - name: portionsize
+          - name: raceid
+          - name: baseprice
+          - name: published
+          - name: marketgroupid
+          - name: iconid
+          - name: soundid
+          - name: graphicid
+      - name: invgroups
+      - name: invcategories
+      - name: invmarketgroups
+      - name: invmetagroups
+      - name: invmetatypes
