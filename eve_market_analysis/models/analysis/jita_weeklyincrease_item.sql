@@ -1,0 +1,11 @@
+SELECT 
+    DATE,
+    TYPEID,
+    AVERAGE,
+    ROUND(
+        (AVERAGE - LAG(AVERAGE, 7) OVER (PARTITION BY TYPEID ORDER BY DATE)) 
+        / NULLIF(LAG(AVERAGE, 7) OVER (PARTITION BY TYPEID ORDER BY DATE), 0) * 100, 
+        2
+    ) AS WEEKLYCHG
+FROM 
+    {{ref('trf_jita_history')}}

@@ -9,3 +9,5 @@ models:
           - not_null
       - name: date
       - name: iskvolume
+  - name: jita_weeklyincrease_item
+  - name: jita_yearlyindex_item

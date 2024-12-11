@@ -13,4 +13,4 @@ SELECT
         RANGE BETWEEN INTERVAL '365 DAY' PRECEDING AND CURRENT ROW
     )) * 100 AS YEARLYINDEX
 FROM 
-    trf_jita_history
+    {{ref('trf_jita_history')}}
