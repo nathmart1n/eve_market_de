@@ -10,7 +10,7 @@ models:
       - name: typename
         data_tests:
           - not_null
-  - name: trf_jita_history_names
+  - name: trf_jita_history
     description: "Jita market history with typenames"
     columns:
       - name: typeid
