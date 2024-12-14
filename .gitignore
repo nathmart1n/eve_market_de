@@ -3,3 +3,5 @@ target/
 dbt_packages/
 logs/
 .env
+plugins/temp/
+__pycache__/
