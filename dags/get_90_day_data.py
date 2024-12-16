@@ -18,7 +18,7 @@ default_args = {
 # Constants
 AIRFLOW_HOME = os.getenv('AIRFLOW_HOME', '/usr/local/airflow')
 MARKET_TYPES_API_URL = "https://esi.evetech.net/latest/markets/{}/types/?datasource=tranquility&page={}"
-MARKET_HISTORY_API_URL = "https://esi.evetech.net/latest/markets/{}}/history/?datasource=tranquility&type_id={}"
+MARKET_HISTORY_API_URL = "https://esi.evetech.net/latest/markets/{}/history/?datasource=tranquility&type_id={}"
 TEMP_DIR = os.path.join(AIRFLOW_HOME, 'plugins', 'temp')
 
 # Ensure temp directory exists
@@ -69,14 +69,41 @@ def get_market_data(market_id_file_paths):
     Args:
         market_id_file_paths (list): List of file paths containing market IDs.
     """
+    import time
     if not market_id_file_paths:
         print("No market ID files found. Exiting task.")
         return
 
     print(f"Processing {len(market_id_file_paths)} market ID files:")
     for file_path in market_id_file_paths:
+        region_data = []
+        region_id = file_path.split('/')[5].split('_')[0]
         print(f"Processing file: {file_path}")
-        # Placeholder: Add functionality to fetch and process market data as needed.
+        with open(file_path, "r") as json_file:
+            data = json.load(json_file)
+            for typeID in data:
+                try:
+                    print(f"Starting TYPEID {typeID}")
+                    response = requests.get(MARKET_HISTORY_API_URL.format(region_id, typeID))
+                    response.raise_for_status()  # Raise exception for HTTP errors
+                    market_data = response.json()
+                    region_data.extend(market_data)
+                    print(f"Finished TYPEID {typeID}")
+                
+                except requests.RequestException as e:
+                    print(f"Error fetching market IDs for typeid {typeID} in region {region_id}: {e}")
+                    time.sleep(61)
+                    response = requests.get(MARKET_HISTORY_API_URL.format(region_id, typeID))
+                    response.raise_for_status()  # Raise exception for HTTP errors
+                    market_data = response.json()
+                    region_data.extend(market_data)
+                    print(f"Finished TYPEID {typeID}")
+            # Save market data to a file
+            file_path = os.path.join(TEMP_DIR, f"{region_id}_90_day_data.json")
+            with open(file_path, "w") as f:
+                json.dump(region_data, f, indent=4)
+        print(f"File processed and printed to: {file_path}")
+        print(data)
 
 # Define the DAG
 with DAG(
