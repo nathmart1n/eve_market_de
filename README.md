@@ -1,6 +1,6 @@
 ## Hi, this is the repo for the following Power BI report
 
-[Report](https://app.powerbi.com/view?r=eyJrIjoiN2RlNTI1MjAtMWM5YS00MzcxLWJmMTEtYjQyNDhiYjAxNDY4IiwidCI6IjM5NjU3M2NiLWYzNzgtNGI2OC05YmM4LTE1NzU1YzBjNTFmMyIsImMiOjZ9&pageName=98ff81757c46825deb00)
+[Report](https://app.powerbi.com/view?r=eyJrIjoiN2RlNTI1MjAtMWM5YS00MzcxLWJmMTEtYjQyNDhiYjAxNDY4IiwidCI6IjM5NjU3M2NiLWYzNzgtNGI2OC05YmM4LTE1NzU1YzBjNTFmMyIsImMiOjZ9)
 
 ## Explainer
 
