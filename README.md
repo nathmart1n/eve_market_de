@@ -25,4 +25,6 @@ This data is then piped into Snowflake by a Snowpipe, and transformations and an
 
 Include other markets. Amarr, Dodixie, Rens, and Hek are smaller hubs (MUCH smaller than Jita), but still are hubs and could be valuable to see
 
-Automate dbt view creation with Airflow, Docker, and deploy on AWS. Right now I'm updating the report whenever I use it, would be nice to have that automated.
+Move data collecting jobs to airflow
+
+Pull market orders from airflow to calculate available trade days
