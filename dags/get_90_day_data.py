@@ -196,6 +196,41 @@ def get_market_data_2(market_id_file_paths):
     else:
         logger.warning("No market data found for any regions, returning null.")
         return
+
+@task
+def combine_files(res1, res2):
+    """
+    Combines two lists of file paths into single files at each index.
+    
+    Args:
+        res1 (list): List of file paths containing the first half of the data.
+        res2 (list): List of file paths containing the second half of the data.
+    """
+    if not res1 or not res2:
+        logger.warning("One or both lists of file paths are empty. Exiting task.")
+        return
+
+    combined_files = []
+    for file1, file2 in zip(res1, res2):
+        try:
+            data1 = pd.read_parquet(file1)
+            data2 = pd.read_parquet(file2)
+            
+            combined_data = pd.concat([data1, data2])
+            print(file1)
+            region_id = file1.split('/')[-1].split('_')[0]
+            region_output_dir = os.path.join(AIRFLOW_HOME, 'plugins', '90_day', region_id)
+            os.makedirs(region_output_dir, exist_ok=True)
+            output_file = os.path.join(region_output_dir, f"{region_id}_data.parquet")
+            combined_data.to_parquet(output_file)
+            combined_files.append(output_file)
+            logger.info(f"Combined data saved to: {output_file}")
+        except Exception as e:
+            logger.error(f"Error combining files {file1} and {file2}: {e}")
+
+    return combined_files
+
+
 # Define the DAG
 with DAG(
     dag_id='get_90_day_data',
@@ -211,7 +246,9 @@ with DAG(
     # Define the task dependencies
     #market_id_files = get_market_ids(region_ids)
     #if not market_id_files:
-    AIRFLOW_HOME = os.getenv('AIRFLOW_HOME', '/usr/local/airflow')
     market_id_files = [AIRFLOW_HOME + '/plugins/temp/10000002_active_market_ids.json']
     res1 = get_market_data_1(market_id_files)
     res2 = get_market_data_2(market_id_files)
+    #res1 = [AIRFLOW_HOME + '/plugins/temp/10000002_90_day_data_1.parquet']
+    #res2 = [AIRFLOW_HOME + '/plugins/temp/10000002_90_day_data_2.parquet']
+    files = combine_files(res1, res2)
