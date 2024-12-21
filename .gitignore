@@ -5,4 +5,4 @@ logs/
 .env
 plugins/temp/
 __pycache__/
-90_day/
+history/

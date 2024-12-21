@@ -27,14 +27,14 @@ with DAG(
 ) as dag:
     
     @task
-    def get_90_day_file_paths():
+    def get_history_file_paths():
         """
         Fetches the file paths for the last 90 days of market data.
         
         Returns:
             list: List of file paths for the last 90 days of market data.
         """
-        base_path = os.path.join(os.getenv('AIRFLOW_HOME', '/usr/local/airflow'), 'plugins', '90_day')
+        base_path = os.path.join(os.getenv('AIRFLOW_HOME', '/usr/local/airflow'), 'plugins', 'history')
         file_paths = []
         
         for region_id in os.listdir(base_path):
@@ -105,6 +105,6 @@ with DAG(
         """).collect()
         groups.write_parquet(os.path.join(AIRFLOW_HOME, 'plugins', 'temp', 'typeid_group_cat.parquet'))
 
-    files = get_90_day_file_paths()
+    files = get_history_file_paths()
     transform_isk_volume(files)
     transform_groups()

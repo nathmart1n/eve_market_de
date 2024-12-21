@@ -118,7 +118,7 @@ def get_market_data_1(market_id_file_paths):
 
         if not region_data.empty:
             # Save market data to a Parquet file
-            output_file = os.path.join(TEMP_DIR, f"{region_id}_90_day_data_1.parquet")
+            output_file = os.path.join(TEMP_DIR, f"{region_id}_history_data_1.parquet")
             region_data.to_parquet(output_file)
             logger.info(f"File processed and saved to: {output_file}")
             output_files.append(output_file)
@@ -185,7 +185,7 @@ def get_market_data_2(market_id_file_paths):
 
         if not region_data.is_empty():
             # Save market data to a Parquet file
-            output_file = os.path.join(TEMP_DIR, f"{region_id}_90_day_data_2.parquet")
+            output_file = os.path.join(TEMP_DIR, f"{region_id}_history_data_2.parquet")
             region_data.write_parquet(output_file)
             logger.info(f"File processed and saved to: {output_file}")
             output_files.append(output_file)
@@ -220,7 +220,7 @@ def combine_files(res1, res2):
             combined_data = pd.concat([data1, data2])
             print(file1)
             region_id = file1.split('/')[-1].split('_')[0]
-            region_output_dir = os.path.join(AIRFLOW_HOME, 'plugins', '90_day', region_id)
+            region_output_dir = os.path.join(AIRFLOW_HOME, 'plugins', 'history', region_id)
             os.makedirs(region_output_dir, exist_ok=True)
             output_file = os.path.join(region_output_dir, f"{region_id}_data.parquet")
             combined_data.to_parquet(output_file)
@@ -234,7 +234,7 @@ def combine_files(res1, res2):
 
 # Define the DAG
 with DAG(
-    dag_id='get_90_day_data',
+    dag_id='get_history_data',
     default_args=default_args,
     description='Fetches 90-day market history data from EVE Online ESI API',
     #schedule_interval=timedelta(days=1),
@@ -250,6 +250,6 @@ with DAG(
     market_id_files = [AIRFLOW_HOME + '/plugins/temp/10000002_active_market_ids.json']
     res1 = get_market_data_1(market_id_files)
     res2 = get_market_data_2(market_id_files)
-    #res1 = [AIRFLOW_HOME + '/plugins/temp/10000002_90_day_data_1.parquet']
-    #res2 = [AIRFLOW_HOME + '/plugins/temp/10000002_90_day_data_2.parquet']
+    #res1 = [AIRFLOW_HOME + '/plugins/temp/10000002_history_data_1.parquet']
+    #res2 = [AIRFLOW_HOME + '/plugins/temp/10000002_history_data_2.parquet']
     files = combine_files(res1, res2)
