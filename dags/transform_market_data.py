@@ -1,5 +1,6 @@
 from airflow import DAG
 import pandas as pd
+import polars as pl
 import logging
 from airflow.decorators import task
 from datetime import datetime
@@ -12,6 +13,8 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
 }
+
+AIRFLOW_HOME = os.getenv('AIRFLOW_HOME', '/usr/local/airflow')
 
 with DAG(
     'transform_market_data',
@@ -74,4 +77,34 @@ with DAG(
             except Exception as e:
                 logging.error(f"Error transforming data in file {file}: {e}")
 
-    transformed_data = transform_isk_volume(get_90_day_file_paths())
+    @task
+    def transform_groups():
+        """
+        Transforms the SDE to get groups and categories for each typeid
+        
+        """
+        invTypes = pl.read_csv(os.path.join(AIRFLOW_HOME, 'plugins', 'temp', 'invTypes.csv'))
+        invGroups = pl.read_csv(os.path.join(AIRFLOW_HOME, 'plugins', 'temp', 'invGroups.csv'))
+        invCategories = pl.read_csv(os.path.join(AIRFLOW_HOME, 'plugins', 'temp', 'invCategories.csv'))
+        print(invTypes.head()) 
+        print(invGroups.head())
+        print(invCategories.head())
+        groups = pl.sql("""
+        SELECT 
+            it.typeID,
+            ig.groupName,
+            ic.categoryName
+        FROM 
+            invTypes it
+        FULL JOIN 
+            invGroups ig ON it.groupID = ig.groupID
+        FULL JOIN
+            invCategories ic ON ig.categoryID = ic.categoryID
+        WHERE
+            it.typeID IS NOT NULL
+        """).collect()
+        groups.write_parquet(os.path.join(AIRFLOW_HOME, 'plugins', 'temp', 'typeid_group_cat.parquet'))
+
+    files = get_90_day_file_paths()
+    transform_isk_volume(files)
+    transform_groups()

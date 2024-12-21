@@ -167,9 +167,10 @@ def get_market_data_2(market_id_file_paths):
                         response.raise_for_status()  # Raise exception for HTTP errors
                         if response.json():
                             res = pl.from_dicts(response.json())
-                            res.with_columns(
+                            res = res.with_columns(
                                 pl.lit(typeID).alias("typeid")
                             )
+                            
                             region_data = pl.concat([region_data, res])
                         else:
                             print(f"No data for typeID {typeID}")
@@ -236,7 +237,7 @@ with DAG(
     dag_id='get_90_day_data',
     default_args=default_args,
     description='Fetches 90-day market history data from EVE Online ESI API',
-    schedule_interval=timedelta(days=1),
+    #schedule_interval=timedelta(days=1),
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=['eve'],
