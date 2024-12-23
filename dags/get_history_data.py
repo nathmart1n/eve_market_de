@@ -87,14 +87,13 @@ def get_market_data_1(market_id_file_paths):
     output_files = []
     logger.info(f"Processing {len(market_id_file_paths)} market ID files:")
     for file_path in market_id_file_paths:
-        region_data = pd.DataFrame()
+        region_data = pl.DataFrame()
         region_id = file_path.split(os.path.sep)[-1].split('_')[0]
         logger.info(f"Processing file: {file_path}")
 
         with open(file_path, "r") as json_file:
             data = json.load(json_file)
             halfLen = len(data) // 2
-            print(halfLen, type(halfLen))
             data = data[:halfLen]
             for i, typeID in enumerate(data, start=1):
                 logger.info(f"Starting TYPEID {typeID}, number {i} of {len(data)}")
@@ -104,9 +103,15 @@ def get_market_data_1(market_id_file_paths):
                     try:
                         response = requests.get(MARKET_HISTORY_API_URL.format(region_id, typeID))
                         response.raise_for_status()  # Raise exception for HTTP errors
-                        res = pd.DataFrame().from_dict(response.json())
-                        res['typeid'] = typeID
-                        region_data = pd.concat([region_data, res], ignore_index=True)
+                        if response.json():
+                            res = pl.from_dicts(response.json())
+                            res = res.with_columns(
+                                pl.lit(typeID).alias("typeid")
+                            )
+                            
+                            region_data = pl.concat([region_data, res])
+                        else:
+                            print(f"No data for typeID {typeID}")
                         break  # Exit retry loop if successful
                     except requests.RequestException as e:
                         logger.error(f"Error fetching market history for typeID {typeID} in region {region_id}: {e}")
@@ -116,10 +121,10 @@ def get_market_data_1(market_id_file_paths):
                         else:
                             logger.error(f"Failed to fetch data for TYPEID {typeID} after {retry_attempts} attempts")
 
-        if not region_data.empty:
+        if not region_data.is_empty():
             # Save market data to a Parquet file
             output_file = os.path.join(TEMP_DIR, f"{region_id}_history_data_1.parquet")
-            region_data.to_parquet(output_file)
+            region_data.write_parquet(output_file)
             logger.info(f"File processed and saved to: {output_file}")
             output_files.append(output_file)
         else:
