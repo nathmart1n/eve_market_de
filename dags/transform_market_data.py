@@ -104,6 +104,35 @@ with DAG(
             it.typeID IS NOT NULL
         """).collect()
         groups.write_parquet(os.path.join(AIRFLOW_HOME, 'plugins', 'temp', 'typeid_group_cat.parquet'))
+    
+    @task
+    def weekly_change(files):
+        """
+        Calculates the weekly change in price for each type ID.
+
+        Args:
+            files (list): List of file paths containing the market data.
+        """
+        if not files:
+            logging.warning("No market data files found. Exiting task.")
+            return
+
+        for file in files:
+            try:
+                data = pl.read_parquet(file)
+                if data.empty:
+                    logging.warning(f"No data found in file: {file}")
+                    continue
+
+                # Calculate percentage difference in price from 7 days ago
+                data = data.sort('date')
+                data['weekly_change'] = data['average'].pct_change(7)
+                output_file = file.replace('.parquet', '_weekly_change.parquet')
+                data.write_parquet(output_file)
+                
+                logging.info(f"Transformed data saved to: {output_file}")
+            except Exception as e:
+                logging.error(f"Error transforming data in file {file}: {e}")
 
     files = get_history_file_paths()
     transform_isk_volume(files)
