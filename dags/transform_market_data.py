@@ -61,6 +61,7 @@ with DAG(
 
         for file in files:
             try:
+                print(file)
                 data = pd.read_parquet(file)
                 if data.empty:
                     logging.warning(f"No data found in file: {file}")
@@ -120,13 +121,24 @@ with DAG(
         for file in files:
             try:
                 data = pl.read_parquet(file)
-                if data.empty:
+                if data.is_empty():
                     logging.warning(f"No data found in file: {file}")
                     continue
 
                 # Calculate percentage difference in price from 7 days ago
                 data = data.sort('date')
-                data['weekly_change'] = data['average'].pct_change(7)
+                # data['weekly_change'] = data['average'].pct_change(7)
+                data=data.with_columns(
+                    data.sort(["typeid", "date"])  # Sort by typeid and date
+                    .group_by("typeid", maintain_order=True)
+                    .agg([
+                        pl.col("date"),  # Keep the date column
+                        pl.col("average"),
+                        (((pl.col("average") - pl.col("average").shift(6)) / pl.col("average").shift(6)) * 100)
+                        .alias("weekly_change")
+                    ])
+                    .explode(["date", "average", "weekly_change"])  # Expand the grouped structure
+                )
                 output_file = file.replace('.parquet', '_weekly_change.parquet')
                 data.write_parquet(output_file)
                 
@@ -135,5 +147,5 @@ with DAG(
                 logging.error(f"Error transforming data in file {file}: {e}")
 
     files = get_history_file_paths()
-    transform_isk_volume(files)
+    transform_isk_volume(files) >> weekly_change(files)
     transform_groups()

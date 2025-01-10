@@ -242,7 +242,7 @@ with DAG(
     dag_id='get_history_data',
     default_args=default_args,
     description='Fetches 90-day market history data from EVE Online ESI API',
-    #schedule_interval=timedelta(days=1),
+    schedule_interval=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=['eve'],
